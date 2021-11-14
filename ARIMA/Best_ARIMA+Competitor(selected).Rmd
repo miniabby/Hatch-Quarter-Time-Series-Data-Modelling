@@ -1,0 +1,252 @@
+---
+title: "Best_ARIMA+Competitor"
+author: "Kechen Zhao 957398"
+date: "18/10/2021"
+output: word_document
+---
+
+ARIMA 12months prediction modelling
+```{r}
+library(forecast)
+library(lubridate)
+library(tseries)
+library(fpp)
+library(ggplot2)
+library(caret)
+# import data
+data <- read.csv("/Users/abigail/Dropbox/Data\ Science\ Project/Combined\ Datasets\ For\ AUS\ and\ US/08-19_combined.csv")
+competitor <- read.csv("/Users/abigail/Desktop/DSProject/competitor_monthly.csv")[,1:19]
+```
+
+```{r}
+data
+```
+
+
+Construct training and test set:
+```{r}
+rownames(data) <- data$month
+data <- subset(data, select = -month)
+
+x <- subset(data, select = -import_ratio)
+y <- subset(data, select = import_ratio)
+
+market_share_all <- ts(y, start=c(2008.1),frequency=12)
+```
+```{r}
+training.x <- x[1:132,]
+training.y <- y[1:132,]
+training.c <- competitor[1:132,-1]
+
+share.train <- ts(training.y, start=c(2008.1),frequency=12)
+test.x <- x[133:144,]
+test.y <- y[133:144,]
+test.c <- competitor[133:144,-1]
+share.test <- ts(test.y, start=c(2019.1),frequency=12)
+```
+
+Since training.x and test.x are rank deficient, we will only select the significant variables for the model fitting:
+```{r}
+sig.x.train <- cbind(training.x$aus_beef.veal_slaughterings, training.x$aus_population_natural_increase, training.x$aus_beef.veal_exports, training.x$us_production_fedral_inspected_total.red.meat.and.poultry, training.x$aus_exports.of.beef..veal.and.live.cattle.to.US, training.x$us_livestock_commercial_mature.sheep, training.x$us_livestock_commercial_beef, training.x$us_veganism_trend_ratio, training.x$us_fed_avg_dressed_calves, training.x$us_veganism, training.c$ca_beef_export_total, training.c$ca_beef_veal_prod, training.c$ca_beef_export_us, training.c$ca_population_natural_increase, training.c$nz_beef_export_total, training.c$nz_beef_veal_prod, training.c$nz_beef_export_us, training.c$nz_population_natural_increase)
+
+# colnames(sig.x.train) <- c('aus_beef.veal_slaughterings', 'aus_population_natural_increase', 'aus_beef.veal_exports', 'us_production_fedral_inspected_total.red.meat.and.poultry', 'aus_exports.of.beef..veal.and.live.cattle.to.US', 'us_livestock_commercial_mature.sheep', 'us_livestock_commercial_beef', 'us_veganism_trend_ratio', 'us_fed_avg_dressed_calves', 'us_veganism', colnames(training.c))
+
+sig.x.test <- cbind(test.x$aus_beef.veal_slaughterings, test.x$aus_population_natural_increase, test.x$aus_beef.veal_exports, test.x$us_production_fedral_inspected_total.red.meat.and.poultry, test.x$aus_exports.of.beef..veal.and.live.cattle.to.US, test.x$us_livestock_commercial_mature.sheep, test.x$us_livestock_commercial_beef, test.x$us_veganism_trend_ratio, test.x$us_fed_avg_dressed_calves, test.x$us_veganism, test.c$ca_beef_export_total, test.c$ca_beef_veal_prod, test.c$ca_beef_export_us, test.c$ca_population_natural_increase, test.c$nz_beef_export_total, test.c$nz_beef_veal_prod, test.c$nz_beef_export_us, test.c$nz_population_natural_increase)
+
+# colnames(sig.x.test) <- c('aus_beef.veal_slaughterings', 'aus_population_natural_increase', 'aus_beef.veal_exports', 'us_production_fedral_inspected_total.red.meat.and.poultry', 'aus_exports.of.beef..veal.and.live.cattle.to.US', 'us_livestock_commercial_mature.sheep', 'us_livestock_commercial_beef', 'us_veganism_trend_ratio', 'us_fed_avg_dressed_calves', 'us_veganism', colnames(test.c))
+```
+```{r}
+dim(sig.x.train)
+```
+
+
+```{r}
+modArima <- auto.arima(share.train, xreg=sig.x.train)
+summary(modArima)
+```
+```{r}
+Forecasted_values<-forecast(modArima,nrow(test.y),xreg=sig.x.test)
+Final_forecasted_values<-Forecasted_values$mean
+Final_forecasted_values
+```
+
+Calculating the MSE in the test dataset:
+```{r}
+(RMSE.ARIMA.with.Seasonality.12 <- sqrt(sum((test.y - Final_forecasted_values)^2)/12))
+(MAE.ARIMA.with.Seasonality.12 <- sum(abs(test.y - Final_forecasted_values))/12)
+(MAPE.ARIMA.with.Seasonality.12 <- 100*sum(abs((test.y - Final_forecasted_values)/Final_forecasted_values))/12)
+```
+Plotting forecast values:
+```{r}
+forecast(modArima,nrow(test.y),xreg=sig.x.test) -> fc
+ARIMA.with.Seasonality.plot.12 <- autoplot(market_share_all, series="Data") + 
+autolayer(fc, series="Forecast") + 
+autolayer(fitted(fc), series="Fitted")
+
+ARIMA.with.Seasonality.plot.12 <- ARIMA.with.Seasonality.plot.12 + labs(title = "ARIMA.with.Seasonality.12") + labs(caption = "RMSE = 0.03325004, MAE = 0.02883448, MAPE = 14.66463")
+ARIMA.with.Seasonality.plot.12
+```
+Plot only the foretasted period:
+```{r}
+forecast(modArima,nrow(test.y),xreg=sig.x.test)$mean -> fc
+ARIMA.Corr.with.Seasonality.forecast.12 <- autoplot(share.test, series="Data") + autolayer(fc, series="Forecast")
+
+ARIMA.Corr.with.Seasonality.forecast.12 <- ARIMA.Corr.with.Seasonality.forecast.12 + labs(title = "ARIMA.Corr.with.Seasonality.forecast.12") + labs(caption = "RMSE = 0.03325004, MAE = 0.02883448, MAPE = 14.66463")
+ARIMA.Corr.with.Seasonality.forecast.12
+```
+Model Validation: 
+Jan-Dec 2014
+```{r}
+fit.2014.12 <- fitted(forecast(modArima,nrow(test.y),xreg=sig.x.test))[73:84]
+data.2014 <- market_share_all[73:84,]
+```
+```{r}
+(RMSE.ARIMA.with.Seasonality.12.val <- sqrt(sum((data.2014 - fit.2014.12)^2)/12))
+(MAE.ARIMA.with.Seasonality.12.val <- sum(abs(data.2014 - fit.2014.12))/12)
+(MAPE.ARIMA.with.Seasonality.12.val <- 100*sum(abs((data.2014 - fit.2014.12)/fit.2014.12))/12)
+```
+Jan-Dec 2016
+```{r}
+fit.2016.12 <- fitted(forecast(modArima,nrow(test.y),xreg=sig.x.test))[97:108]
+data.2016 <- market_share_all[97:108,]
+```
+```{r}
+(RMSE.ARIMA.with.Seasonality.12.val <- sqrt(sum((data.2016 - fit.2016.12)^2)/12))
+(MAE.ARIMA.with.Seasonality.12.val <- sum(abs(data.2016 - fit.2016.12))/12)
+(MAPE.ARIMA.with.Seasonality.12.val <- 100*sum(abs((data.2016 - fit.2016.12)/fit.2016.12))/12)
+```
+
+
+
+
+ARIMA 6months prediction modelling
+```{r}
+data <- read.csv("/Users/abigail/Dropbox/Data\ Science\ Project/Combined\ Datasets\ For\ AUS\ and\ US/08-19_combined.csv")
+competitor <- read.csv("/Users/abigail/Desktop/DSProject/competitor_monthly.csv")[,1:19]
+```
+Construct training and test set:
+```{r}
+rownames(data) <- data$month
+data <- subset(data, select = -month)
+
+x <- subset(data, select = -import_ratio)
+y <- subset(data, select = import_ratio)
+
+market_share_all <- ts(y, start=c(2008.1),frequency=12)
+```
+```{r}
+training.x <- x[1:138,]
+training.y <- y[1:138,]
+training.c <- competitor[1:138,-1]
+
+share.train <- ts(training.y, start=c(2008.1),frequency=12)
+test.x <- x[139:144,]
+test.y <- y[139:144,]
+test.c <- competitor[139:144,-1]
+
+share.test <- ts(test.y, start=c(2019.6),frequency=12)
+```
+Since training.x and test.x are rank deficient, we will only select the significant variables for the model fitting:
+```{r}
+sig.x.train <- cbind(training.x$us_livestock_commercial_lambs.and.yearlings, training.x$aus_beef.veal_exports, training.x$us_livestock_commercial_beef, training.x$aus_total.dairy.cattle.and.calves, training.x$aus_Meat.Produced....CATTLE..excl..calves.....Total..State..Original..tonnes., training.x$us_veganism, training.x$aus_avg_rainfall, training.x$us_veganism_trend_ratio, training.x$aus_Meat.Produced....CATTLE..excl..calves.....Total..State..Seasonally.adjusted..tonnes., training.x$us.cattle.numbers..1000., training.x$us_fed_avg_dressed_calves, training.x$aus_exports.of.beef..veal.and.live.cattle.to.US, training.x$us_production_fedral_inspected_total.poultry, training.x$us_cold_storage_beef, training.x$us_production_commercial_beef, training.x$us_livestock_commercial_mature.sheep, training.x$us_livestock_commercial_steers, training.c$ca_beef_export_total, training.c$ca_beef_veal_prod, training.c$ca_avg_rainfall, training.c$ca_beef_export_us, training.c$nz_beef_export_total, training.c$nz_beef_veal_prod, training.c$nz_avg_rainfall, training.c$nz_beef_export_us)
+
+# colnames(sig.x.train) <- c('us_livestock_commercial_lambs.and.yearlings', 'aus_beef.veal_exports', 'us_livestock_commercial_beef', 'aus_total.dairy.cattle.and.calves', 'aus_Meat.Produced....CATTLE..excl..calves.....Total..State..Original..tonnes.', 'us_veganism', 'aus_avg_rainfall', 'us_veganism_trend_ratio', 'aus_Meat.Produced....CATTLE..excl..calves.....Total..State..Seasonally.adjusted..tonnes.', 'us.cattle.numbers..1000.', 'us_fed_avg_dressed_calves', 'aus_exports.of.beef..veal.and.live.cattle.to.US', 'us_production_fedral_inspected_total.poultry', 'us_cold_storage_beef', 'us_production_commercial_beef', 'us_livestock_commercial_mature.sheep', 'us_livestock_commercial_steers', colnames(training.c))
+
+sig.x.test <- cbind(test.x$us_livestock_commercial_lambs.and.yearlings, test.x$aus_beef.veal_exports, test.x$us_livestock_commercial_beef, test.x$aus_total.dairy.cattle.and.calves, test.x$aus_Meat.Produced....CATTLE..excl..calves.....Total..State..Original..tonnes., test.x$us_veganism, test.x$aus_avg_rainfall, test.x$us_veganism_trend_ratio, test.x$aus_Meat.Produced....CATTLE..excl..calves.....Total..State..Seasonally.adjusted..tonnes., test.x$us.cattle.numbers..1000., test.x$us_fed_avg_dressed_calves, test.x$aus_exports.of.beef..veal.and.live.cattle.to.US, test.x$us_production_fedral_inspected_total.poultry, test.x$us_cold_storage_beef, test.x$us_production_commercial_beef, test.x$us_livestock_commercial_mature.sheep, test.x$us_livestock_commercial_steers, test.c$ca_beef_export_total, test.c$ca_beef_veal_prod, test.c$ca_avg_rainfall, test.c$ca_beef_export_us, test.c$nz_beef_export_total, test.c$nz_beef_veal_prod, test.c$nz_avg_rainfall, test.c$nz_beef_export_us)
+
+# colnames(sig.x.test) <- c('us_livestock_commercial_lambs.and.yearlings', 'aus_beef.veal_exports', 'us_livestock_commercial_beef', 'aus_total.dairy.cattle.and.calves', 'aus_Meat.Produced....CATTLE..excl..calves.....Total..State..Original..tonnes.', 'us_veganism', 'aus_avg_rainfall', 'us_veganism_trend_ratio', 'aus_Meat.Produced....CATTLE..excl..calves.....Total..State..Seasonally.adjusted..tonnes.', 'us.cattle.numbers..1000.', 'us_fed_avg_dressed_calves', 'aus_exports.of.beef..veal.and.live.cattle.to.US', 'us_production_fedral_inspected_total.poultry', 'us_cold_storage_beef', 'us_production_commercial_beef', 'us_livestock_commercial_mature.sheep', 'us_livestock_commercial_steers', colnames(test.c))
+```
+```{r}
+dim(sig.x.train)
+```
+
+
+```{r}
+modArima <- auto.arima(share.train, xreg=sig.x.train)
+summary(modArima)
+```
+
+```{r}
+Forecasted_values<-forecast(modArima,nrow(test.y),xreg=sig.x.test)
+Final_forecasted_values<-Forecasted_values$mean
+Final_forecasted_values
+```
+
+Calculating the MSE in the test dataset:
+```{r}
+(RMSE.ARIMA.with.Seasonality.6 <- sqrt(sum((test.y - Final_forecasted_values)^2)/6))
+(MAE.ARIMA.with.Seasonality.6 <- sum(abs(test.y - Final_forecasted_values))/6)
+(MAPE.ARIMA.with.Seasonality.6 <- 100*sum(abs((test.y - Final_forecasted_values)/Final_forecasted_values))/6)
+```
+Plotting forecast values:
+```{r}
+forecast(modArima,nrow(test.y),xreg=sig.x.test) -> fc
+ARIMA.with.Seasonality.plot.6 <- autoplot(market_share_all, series="Data") + 
+autolayer(fc, series="Forecast") + 
+autolayer(fitted(fc), series="Fitted")
+
+ARIMA.with.Seasonality.plot.6 <- ARIMA.with.Seasonality.plot.6 + labs(title = "ARIMA.with.Seasonality.6") + labs(caption = "RMSE = 0.01527612, MAE = 0.01362037, MAPE = 5.186086")
+ARIMA.with.Seasonality.plot.6
+```
+
+Plot only the foretasted period:
+```{r}
+forecast(modArima,nrow(test.y),xreg=sig.x.test)$mean -> fc
+ARIMA.Corr.with.Seasonality.forecast.6 <- autoplot(share.test, series="Data") + autolayer(fc, series="Forecast")
+
+ARIMA.Corr.with.Seasonality.forecast.6 <- ARIMA.Corr.with.Seasonality.forecast.6 + labs(title = "ARIMA.Corr.with.Seasonality.forecast.6") + labs(caption = "RMSE = 0.01527612, MAE = 0.01362037, MAPE = 5.186086")
+ARIMA.Corr.with.Seasonality.forecast.6
+```
+Model Validation
+Apr-Oct 2014:
+```{r}
+fit.2014.6 <- fitted(forecast(modArima,nrow(test.y),xreg=sig.x.test))[76:81]
+data.2014 <- market_share_all[76:81,]
+```
+
+```{r}
+(RMSE.ARIMA.with.Seasonality.6 <- sqrt(sum((data.2014 - fit.2014.6)^2)/6))
+(MAE.ARIMA.with.Seasonality.6 <- sum(abs(data.2014 - fit.2014.6))/6)
+(MAPE.ARIMA.with.Seasonality.6 <- 100*sum(abs((data.2014 - fit.2014.6)/fit.2014.6))/6)
+```
+Jane-June 2014:
+```{r}
+fit.2016.6 <- fitted(forecast(modArima,nrow(test.y),xreg=sig.x.test))[97:102]
+data.2016 <- market_share_all[97:102,]
+```
+
+```{r}
+(RMSE.ARIMA.with.Seasonality.6 <- sqrt(sum((data.2016 - fit.2016.6)^2)/6))
+(MAE.ARIMA.with.Seasonality.6 <- sum(abs(data.2016 - fit.2016.6))/6)
+(MAPE.ARIMA.with.Seasonality.6 <- 100*sum(abs((data.2016 - fit.2016.6)/fit.2016.6))/6)
+```
+May-Oct 2016:
+```{r}
+fit.2016.6 <- fitted(forecast(modArima,nrow(test.y),xreg=sig.x.test))[101:106]
+data.2016 <- market_share_all[101:106,]
+```
+
+```{r}
+(RMSE.ARIMA.with.Seasonality.6 <- sqrt(sum((data.2016 - fit.2016.6)^2)/6))
+(MAE.ARIMA.with.Seasonality.6 <- sum(abs(data.2016 - fit.2016.6))/6)
+(MAPE.ARIMA.with.Seasonality.6 <- 100*sum(abs((data.2016 - fit.2016.6)/fit.2016.6))/6)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

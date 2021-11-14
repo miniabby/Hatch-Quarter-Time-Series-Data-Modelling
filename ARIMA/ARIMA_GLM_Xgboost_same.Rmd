@@ -1,0 +1,305 @@
+---
+title: "ARIMA_GLM_Xgboost_same"
+author: "Kechen Zhao 957398"
+date: "17/10/2021"
+output: word_document
+---
+
+---
+title: "ARIMA_GLM_shap_same"
+author: "Kechen Zhao 957398"
+date: "12/10/2021"
+output: word_document
+---
+
+ARIMA 12months prediction modelling
+```{r}
+library(forecast)
+library(lubridate)
+library(tseries)
+library(fpp)
+library(ggplot2)
+library(caret)
+# import data
+data <- read.csv("/Users/abigail/Dropbox/Data\ Science\ Project/Combined\ Datasets\ For\ AUS\ and\ US/08-19_combined.csv")
+```
+Construct training and test set:
+```{r}
+rownames(data) <- data$month
+data <- subset(data, select = -month)
+
+x <- subset(data, select = -import_ratio)
+y <- subset(data, select = import_ratio)
+
+market_share_all <- ts(y, start=c(2008.1),frequency=12)
+```
+```{r}
+training.x <- x[1:132,]
+training.y <- y[1:132,]
+share.train <- ts(training.y, start=c(2008.1),frequency=12)
+test.x <- x[133:144,]
+test.y <- y[133:144,]
+share.test <- ts(test.y, start=c(2019.1),frequency=12)
+```
+Since training.x and test.x are rank deficient, we will only select the significant variables for the model fitting:
+```{r}
+sig.x.train <- cbind(training.x$us_commercial_avg_live_calves, training.x$aus_exports.of.beef..veal.and.live.cattle.to.US, training.x$us_total.red.meat.and.poultry, training.x$us_fed_avg_dressed_steers, training.x$aus_beef.veal_slaughterings, training.x$us_veganism, training.x$aus_total.dairy.cattle.and.calves, training.x$us_livestock_commercial_mature.sheep, training.x$australia.cattle.numbers, training.x$us_production_commercial_total.red.meat, training.x$us_livestock_commercial_dairy, training.x$us_veganism_trend_ratio, training.x$aus_Meat.Produced....CATTLE..excl..calves.....Total..State..Original..tonnes., training.x$us_cold_storage_beef, training.x$aus_beef.veal_production, training.x$aus_max_temp, training.x$us_beef)
+
+colnames(sig.x.train) <- c('us_commercial_avg_live_calves', 'aus_exports.of.beef..veal.and.live.cattle.to.US', 'us_total.red.meat.and.poultry', 'us_fed_avg_dressed_steers', 'aus_beef.veal_slaughterings', 'us_veganism', 'aus_total.dairy.cattle.and.calves', 'us_livestock_commercial_mature.sheep', 'australia.cattle.numbers', 'us_production_commercial_total.red.meat', 'us_livestock_commercial_dairy', 'us_veganism_trend_ratio', 'aus_Meat.Produced....CATTLE..excl..calves.....Total..State..Original..tonnes.', 'us_cold_storage_beef', 'aus_beef.veal_production', 'aus_max_temp', 'us_beef')
+
+modArima <- auto.arima(share.train, xreg=sig.x.train)
+summary(modArima)
+```
+
+Apply the model to test set:
+```{r}
+sig.x.test <- cbind(test.x$us_commercial_avg_live_calves, test.x$aus_exports.of.beef..veal.and.live.cattle.to.US, test.x$us_total.red.meat.and.poultry, test.x$us_fed_avg_dressed_steers, test.x$aus_beef.veal_slaughterings, test.x$us_veganism, test.x$aus_total.dairy.cattle.and.calves, test.x$us_livestock_commercial_mature.sheep, test.x$australia.cattle.numbers, test.x$us_production_commercial_total.red.meat, test.x$us_livestock_commercial_dairy, test.x$us_veganism_trend_ratio, test.x$aus_Meat.Produced....CATTLE..excl..calves.....Total..State..Original..tonnes., test.x$us_cold_storage_beef, test.x$aus_beef.veal_production, test.x$aus_max_temp, test.x$us_beef)
+
+colnames(sig.x.test) <- c('us_commercial_avg_live_calves', 'aus_exports.of.beef..veal.and.live.cattle.to.US', 'us_total.red.meat.and.poultry', 'us_fed_avg_dressed_steers', 'aus_beef.veal_slaughterings', 'us_veganism', 'aus_total.dairy.cattle.and.calves', 'us_livestock_commercial_mature.sheep', 'australia.cattle.numbers', 'us_production_commercial_total.red.meat', 'us_livestock_commercial_dairy', 'us_veganism_trend_ratio', 'aus_Meat.Produced....CATTLE..excl..calves.....Total..State..Original..tonnes.', 'us_cold_storage_beef', 'aus_beef.veal_production', 'aus_max_temp', 'us_beef')
+
+
+Forecasted_values<-forecast(modArima,nrow(test.y),xreg=sig.x.test)
+Final_forecasted_values<-Forecasted_values$mean
+Final_forecasted_values
+```
+Calculating the MSE in the test dataset:
+```{r}
+(RMSE.ARIMA.with.Seasonality.12 <- sqrt(sum((test.y - Final_forecasted_values)^2)/12))
+(MAE.ARIMA.with.Seasonality.12 <- sum(abs(test.y - Final_forecasted_values))/12)
+(MAPE.ARIMA.with.Seasonality.12 <- 100*sum(abs((test.y - Final_forecasted_values)/Final_forecasted_values))/12)
+```
+Plotting forecast values:
+```{r}
+forecast(modArima,nrow(test.y),xreg=sig.x.test) -> fc
+ARIMA.with.Seasonality.plot.12 <- autoplot(market_share_all, series="Data") + 
+autolayer(fc, series="Forecast") + 
+autolayer(fitted(fc), series="Fitted")
+
+ARIMA.with.Seasonality.plot.12 <- ARIMA.with.Seasonality.plot.12 + labs(title = "ARIMA.with.Seasonality.12") + labs(caption = "RMSE = 0.03243267, MAE = 0.0251856, MAPE = 12.64979")
+ARIMA.with.Seasonality.plot.12
+```
+Plot only the foretasted period:
+```{r}
+forecast(modArima,nrow(test.y),xreg=sig.x.test)$mean -> fc
+ARIMA.Corr.with.Seasonality.forecast.12 <- autoplot(share.test, series="Data") + autolayer(fc, series="Forecast")
+
+ARIMA.Corr.with.Seasonality.forecast.12 <- ARIMA.Corr.with.Seasonality.forecast.12 + labs(title = "ARIMA.Corr.with.Seasonality.forecast.12") + labs(caption = "RMSE = 0.03243267, MAE = 0.0251856, MAPE = 12.64979")
+ARIMA.Corr.with.Seasonality.forecast.12
+```
+
+Fitting ARIMA without seasonality
+Deseasonaling the dataset and plotting：
+```{r}
+decompose_data = decompose(share.train, "additive")
+adjust_market_share = share.train - decompose_data$seasonal
+plot(adjust_market_share)
+```
+Fit ARIMA to deseasoned data:
+```{r}
+modArima_desea <- auto.arima(adjust_market_share, xreg=sig.x.train)
+modArima_desea
+```
+```{r}
+Forecasted_values_des<-forecast(modArima_desea,nrow(test.y),xreg=sig.x.test)
+Final_forecasted_values_des<-Forecasted_values_des$mean
+(Final_forecasted_values_des)
+
+(RMSE.ARIMA.without.Seasonality.12 <- sqrt(sum((test.y - Final_forecasted_values_des)^2)/12))
+(MAE.ARIMA.without.Seasonality.12 <- sum(abs(test.y - Final_forecasted_values_des))/12)
+(MAPE.ARIMA.without.Seasonality.12 <- 100*sum(abs((test.y - Final_forecasted_values_des)/Final_forecasted_values_des))/12)
+```
+Plotting forecast values after seasonality removal:
+```{r}
+forecast(modArima_desea,nrow(test.y),xreg=sig.x.test) -> fc1
+ARIMA.without.Seasonality.plot.12 <- autoplot(market_share_all, series="Data") + 
+autolayer(fc1, series="Forecast") + 
+autolayer(fitted(fc1), series="Fitted")
+
+ARIMA.without.Seasonality.plot.12 <- ARIMA.without.Seasonality.plot.12 + labs(title = "ARIMA.without.Seasonality.12") + labs(caption = "RMSE = 0.04633136, MAE = 0.04202909, MAPE = 21.08097")
+ARIMA.without.Seasonality.plot.12
+```
+Plot only the foretasted period:
+```{r}
+forecast(modArima_desea,nrow(test.y),xreg=sig.x.test)$mean -> fc
+ARIMA.Corr.without.Seasonality.forecast.12 <- autoplot(share.test, series="Data") + autolayer(fc, series="Forecast")
+
+ARIMA.Corr.without.Seasonality.forecast.12 <- ARIMA.Corr.without.Seasonality.forecast.12 + labs(title = "ARIMA.Corr.without.Seasonality.forecast.12") + labs(caption = "RMSE = 0.04633136, MAE = 0.04202909, MAPE = 21.08097")
+ARIMA.Corr.without.Seasonality.forecast.12
+```
+Use glm:
+```{r}
+glm.train <- glm(share.train~., data=as.data.frame(sig.x.train))
+summary(glm.train)
+(glm.prediction <- predict(glm.train, as.data.frame(sig.x.test)))
+
+(RMSE.GLM.12 <- sqrt(sum((test.y - glm.prediction)^2)/12))
+(MAE.GLM.12 <- sum(abs(test.y - glm.prediction))/12)
+(MAPE.GLM.12 <- 100*sum(abs((test.y - glm.prediction)/glm.prediction))/12)
+```
+
+Plotting forecast values:
+```{r}
+fc1 <- ts(glm.prediction, start=c(2019.1),frequency=12)
+fitted <- ts(glm.train$fitted.values, start=c(2008.1),frequency=12)
+GLM.plot.12 <- autoplot(market_share_all, series="Data") + 
+autolayer(fc1, series="Forecast") + 
+autolayer(fitted, series="Fitted")
+
+GLM.plot.12 <- GLM.plot.12 + labs(title = "GLM.12") + labs(caption = "RMSE = 0.02959606, MAE = 0.02391469, MAPE = 11.71434")
+GLM.plot.12
+```
+
+Plot only the foretasted period:
+```{r}
+fc1 <- ts(glm.prediction, start=c(2019.1),frequency=12)
+glm.corr.forecast.12 <- autoplot(share.test, series="Data") + autolayer(fc1, series="Forecast")
+
+glm.corr.forecast.12 <- glm.corr.forecast.12 + labs(title = "glm.corr.forecast.12")+ labs(caption = "RMSE = 0.02959606, MAE = 0.02391469, MAPE = 11.71434")
+glm.corr.forecast.12
+```
+
+
+
+
+
+
+
+
+
+ARIMA 6months prediction modelling
+```{r}
+data <- read.csv("/Users/abigail/Dropbox/Data\ Science\ Project/Combined\ Datasets\ For\ AUS\ and\ US/08-19_combined.csv")
+```
+Construct training and test set:
+```{r}
+rownames(data) <- data$month
+data <- subset(data, select = -month)
+
+x <- subset(data, select = -import_ratio)
+y <- subset(data, select = import_ratio)
+
+market_share_all <- ts(y, start=c(2008.1),frequency=12)
+```
+```{r}
+training.x <- x[1:138,]
+training.y <- y[1:138,]
+share.train <- ts(training.y, start=c(2008.1),frequency=12)
+test.x <- x[139:144,]
+test.y <- y[139:144,]
+share.test <- ts(test.y, start=c(2019.6),frequency=12)
+```
+Since training.x and test.x are rank deficient, we will only select the significant variables for the model fitting:
+```{r}
+sig.x.train <- cbind(training.x$us.cattle.numbers..1000., training.x$us_commercial_avg_live_calves, training.x$us_production_commercial_total.red.meat, training.x$aus_exports.of.beef..veal.and.live.cattle.to.US, training.x$us_production_fedral_inspected_total.poultry, training.x$us_livestock_commercial_mature.sheep, training.x$aus_beef.veal_exports, training.x$aus_population_overseas_arrivals, training.x$us_veganism, training.x$aus_avg_rainfall, training.x$aus_labour, training.x$us_livestock_commercial_heifers, training.x$us_cold_storage_beef, training.x$us_veganism_trend_ratio, training.x$Value.of.Australian.exports.of.beef.and.veal..and.live.cattle.to.US., training.x$aus_population_natural_increase, training.x$us_livestock_commercial_lambs.and.yearlings, training.x$aus_beef.veal_slaughterings, training.x$us_fed_avg_dressed_heifers, training.x$aus_Meat.Produced....CALVES....Total..State....Seasonally.Adjusted, training.x$aus_Meat.Produced....CATTLE..excl..calves.....Total..State..Original..tonnes., training.x$aus_Meat.Produced....CALVES....Total..State...)
+
+colnames(sig.x.train) <- c('us.cattle.numbers..1000.', 'us_commercial_avg_live_calves', 'us_production_commercial_total.red.meat', 'aus_exports.of.beef..veal.and.live.cattle.to.US', 'us_production_fedral_inspected_total.poultry', 'us_livestock_commercial_mature.sheep', 'aus_beef.veal_exports', 'aus_population_overseas_arrivals', 'us_veganism', 'aus_avg_rainfall', 'aus_labour', 'us_livestock_commercial_heifers', 'us_cold_storage_beef', 'us_veganism_trend_ratio', 'Value.of.Australian.exports.of.beef.and.veal..and.live.cattle.to.US.', 'aus_population_natural_increase', 'us_livestock_commercial_lambs.and.yearlings', 'aus_beef.veal_slaughterings', 'us_fed_avg_dressed_heifers', 'aus_Meat.Produced....CALVES....Total..State....Seasonally.Adjusted','aus_Meat.Produced....CATTLE..excl..calves.....Total..State..Original..tonnes.' , 'aus_Meat.Produced....CALVES....Total..State...')
+
+modArima <- auto.arima(share.train, xreg=sig.x.train)
+summary(modArima)
+```
+Apply the model to test set:
+```{r}
+sig.x.test <- cbind(test.x$us.cattle.numbers..1000., test.x$us_commercial_avg_live_calves, test.x$us_production_commercial_total.red.meat, test.x$aus_exports.of.beef..veal.and.live.cattle.to.US, test.x$us_production_fedral_inspected_total.poultry, test.x$us_livestock_commercial_mature.sheep, test.x$aus_beef.veal_exports, test.x$aus_population_overseas_arrivals, test.x$us_veganism, test.x$aus_avg_rainfall, test.x$aus_labour, test.x$us_livestock_commercial_heifers, test.x$us_cold_storage_beef, test.x$us_veganism_trend_ratio, test.x$Value.of.Australian.exports.of.beef.and.veal..and.live.cattle.to.US., test.x$aus_population_natural_increase, test.x$us_livestock_commercial_lambs.and.yearlings, test.x$aus_beef.veal_slaughterings, test.x$us_fed_avg_dressed_heifers, test.x$aus_Meat.Produced....CALVES....Total..State....Seasonally.Adjusted, test.x$aus_Meat.Produced....CATTLE..excl..calves.....Total..State..Original..tonnes., test.x$aus_Meat.Produced....CALVES....Total..State...)
+
+colnames(sig.x.test) <- c('us.cattle.numbers..1000.', 'us_commercial_avg_live_calves', 'us_production_commercial_total.red.meat', 'aus_exports.of.beef..veal.and.live.cattle.to.US', 'us_production_fedral_inspected_total.poultry', 'us_livestock_commercial_mature.sheep', 'aus_beef.veal_exports', 'aus_population_overseas_arrivals', 'us_veganism', 'aus_avg_rainfall', 'aus_labour', 'us_livestock_commercial_heifers', 'us_cold_storage_beef', 'us_veganism_trend_ratio', 'Value.of.Australian.exports.of.beef.and.veal..and.live.cattle.to.US.', 'aus_population_natural_increase', 'us_livestock_commercial_lambs.and.yearlings', 'aus_beef.veal_slaughterings', 'us_fed_avg_dressed_heifers', 'aus_Meat.Produced....CALVES....Total..State....Seasonally.Adjusted', 'aus_Meat.Produced....CATTLE..excl..calves.....Total..State..Original..tonnes.', 'aus_Meat.Produced....CALVES....Total..State...')
+
+
+Forecasted_values<-forecast(modArima,nrow(test.y),xreg=sig.x.test)
+Final_forecasted_values<-Forecasted_values$mean
+Final_forecasted_values
+```
+Calculating the MSE in the test dataset:
+```{r}
+(RMSE.ARIMA.with.Seasonality.6 <- sqrt(sum((test.y - Final_forecasted_values)^2)/6))
+(MAE.ARIMA.with.Seasonality.6 <- sum(abs(test.y - Final_forecasted_values))/6)
+(MAPE.ARIMA.with.Seasonality.6 <- 100*sum(abs((test.y - Final_forecasted_values)/Final_forecasted_values))/6)
+```
+Plotting forecast values:
+```{r}
+forecast(modArima,nrow(test.y),xreg=sig.x.test) -> fc
+ARIMA.with.Seasonality.plot.6 <- autoplot(market_share_all, series="Data") + 
+autolayer(fc, series="Forecast") + 
+autolayer(fitted(fc), series="Fitted")
+
+ARIMA.with.Seasonality.plot.6 <- ARIMA.with.Seasonality.plot.6 + labs(title = "ARIMA.with.Seasonality.6") + labs(caption = "RMSE = 0.02514925, MAE = 0.02094703, MAPE = 9.519235")
+ARIMA.with.Seasonality.plot.6
+```
+Plot only the foretasted period:
+```{r}
+forecast(modArima,nrow(test.y),xreg=sig.x.test)$mean -> fc
+ARIMA.Corr.with.Seasonality.forecast.6 <- autoplot(share.test, series="Data") + autolayer(fc, series="Forecast")
+
+ARIMA.Corr.with.Seasonality.forecast.6 <- ARIMA.Corr.with.Seasonality.forecast.6 + labs(title = "ARIMA.Corr.with.Seasonality.forecast.6") + labs(caption = "RMSE = 0.02514925, MAE = 0.02094703, MAPE = 9.519235")
+ARIMA.Corr.with.Seasonality.forecast.6
+```
+
+Fitting ARIMA without seasonality
+Deseasonaling the dataset and plotting：
+```{r}
+decompose_data = decompose(share.train, "additive")
+adjust_market_share = share.train - decompose_data$seasonal
+plot(adjust_market_share)
+```
+Fit ARIMA to deseasoned data:
+```{r}
+modArima_desea <- auto.arima(adjust_market_share, xreg=sig.x.train)
+modArima_desea
+```
+```{r}
+Forecasted_values_des<-forecast(modArima_desea,nrow(test.y),xreg=sig.x.test)
+Final_forecasted_values_des<-Forecasted_values_des$mean
+(Final_forecasted_values_des)
+
+(RMSE.ARIMA.without.Seasonality.6 <- sqrt(sum((test.y - Final_forecasted_values_des)^2)/6))
+(MAE.ARIMA.without.Seasonality.6 <- sum(abs(test.y - Final_forecasted_values_des))/6)
+(MAPE.ARIMA.without.Seasonality.6 <- 100*sum(abs((test.y - Final_forecasted_values_des)/Final_forecasted_values_des))/6)
+```
+Plotting forecast values after seasonality removal:
+```{r}
+forecast(modArima_desea,nrow(test.y),xreg=sig.x.test) -> fc1
+ARIMA.without.Seasonality.plot.6 <- autoplot(market_share_all, series="Data") + 
+autolayer(fc1, series="Forecast") + 
+autolayer(fitted(fc1), series="Fitted")
+
+ARIMA.without.Seasonality.plot.6 <- ARIMA.without.Seasonality.plot.6 + labs(title = "ARIMA.without.Seasonality.6") + labs(caption = "RMSE = 0.03782745, MAE = 0.03580911, MAPE = 16.98348")
+ARIMA.without.Seasonality.plot.6
+```
+Plot only the foretasted period:
+```{r}
+forecast(modArima_desea,nrow(test.y),xreg=sig.x.test)$mean -> fc
+ARIMA.Corr.without.Seasonality.forecast.6 <- autoplot(share.test, series="Data") + autolayer(fc, series="Forecast")
+
+ARIMA.Corr.without.Seasonality.forecast.6 <- ARIMA.Corr.without.Seasonality.forecast.6 + labs(title = "ARIMA.Corr.without.Seasonality.forecast.6") + labs(caption = "RMSE = 0.03782745, MAE = 0.03580911, MAPE = 16.98348")
+ARIMA.Corr.without.Seasonality.forecast.6
+```
+Use glm:
+```{r}
+glm.train <- glm(adjust_market_share~., data=as.data.frame(sig.x.train))
+summary(glm.train)
+(glm.prediction <- predict(glm.train, as.data.frame(sig.x.test)))
+
+(RMSE.GLM.6 <- sqrt(sum((test.y - glm.prediction)^2)/6))
+(MAE.GLM.6 <- sum(abs(test.y - glm.prediction))/6)
+(MAPE.GLM.6 <- 100*sum(abs((test.y - glm.prediction)/glm.prediction))/6)
+```
+
+Plotting forecast values:
+```{r}
+fc1 <- ts(glm.prediction, start=c(2019.6),frequency=12)
+fitted <- ts(glm.train$fitted.values, start=c(2008.1),frequency=12)
+GLM.plot.6 <- autoplot(market_share_all, series="Data") + 
+autolayer(fc1, series="Forecast") + 
+autolayer(fitted, series="Fitted")
+
+GLM.plot.6 <- GLM.plot.6 + labs(title = "GLM.6") + labs(caption = "RMSE = 0.03697881, MAE = 0.03489276, MAPE = 16.47584")
+GLM.plot.6
+```
+
+Plot only the foretasted period:
+```{r}
+fc1 <- ts(glm.prediction, start=c(2019.6),frequency=12)
+glm.forecast.6 <- autoplot(share.test, series="Data") + autolayer(fc1, series="Forecast")
+
+glm.forecast.6 <- glm.forecast.6 + labs(title = "glm.forecast.6")+ labs(caption = "RMSE = 0.03697881, MAE = 0.03489276, MAPE = 16.47584")
+glm.forecast.6
+```

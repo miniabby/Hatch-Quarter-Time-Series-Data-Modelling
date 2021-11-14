@@ -1,0 +1,111 @@
+
+# For 6M prediction of 2019
+
+### Selected by XGBoost Importance
+xgb_selected_features_22 = ['us cattle numbers(*1000)', 'us_commercial_avg_live_calves',
+                            'us_production_commercial_total red meat',
+                            'aus_exports of beef, veal and live cattle to US',
+                            'us_production_fedral_inspected_total poultry',
+                            'us_livestock_commercial_mature sheep', 'aus_beef&veal_exports',
+                            'aus_population_overseas_arrivals', 'us_veganism',
+                            'aus_avg_rainfall', 'aus_labour',
+                            'us_livestock_commercial_heifers', 'us_cold_storage_beef',
+                            'us_veganism_trend_ratio',
+                            'Value of Australian exports of beef and veal, and live cattle to US ',
+                            'aus_population_natural_increase',
+                            'us_livestock_commercial_lambs and yearlings',
+                            'aus_beef&veal_slaughterings', 'us_fed_avg_dressed_heifers',
+                            'aus_Meat Produced ;  CALVES ;  Total (State) ; Seasonally Adjusted',
+                            'aus_Meat Produced ;  CATTLE (excl. calves) ;  Total (State) Original (tonnes)',
+                            'aus_Meat Produced ;  CALVES ;  Total (State) ;']
+
+
+### Selected by SHAP Value (above zero) - total number = 19
+selected_features_shap_all = ['us_veganism',
+                             'aus_labour',
+                             'aus_population_natural_increase',
+                             'us cattle numbers(*1000)',
+                             'us_commercial_avg_live_calves',
+                             'aus_exports of beef, veal and live cattle to US',
+                             'aus_Meat Produced ;  CATTLE (excl. calves) ;  Total (State) Original (tonnes)',
+                             'us_production_fedral_inspected_total poultry',
+                             'aus_avg_rainfall',
+                             'aus_Meat Produced ;  CALVES ;  Total (State) ;',
+                             'us_production_commercial_total red meat',
+                             'aus_beef&veal_slaughterings',
+                             'us_livestock_commercial_mature sheep',
+                             'us_livestock_commercial_lambs and yearlings',
+                             'us_veganism_trend_ratio',
+                             'us_cold_storage_beef',
+                             'aus_Meat Produced ;  CALVES ;  Total (State) ; Seasonally Adjusted',
+                             'us_livestock_commercial_steers',
+                             'us_fed_avg_dressed_steers']
+
+
+### Selected by SHAP Value (using Wrapper Method) - gives the best result
+selected_features_shap_17 = ['us_livestock_commercial_lambs and yearlings', 'aus_beef&veal_exports', 
+                            'us_livestock_commercial_beef', 'aus_total dairy cattle and calves', 
+                            'aus_Meat Produced ;  CATTLE (excl. calves) ;  Total (State) Original (tonnes)', 
+                            'us_veganism', 'aus_avg_rainfall', 'us_veganism_trend_ratio', 
+                            'aus_Meat Produced ;  CATTLE (excl. calves) ;  Total (State) Seasonally adjusted (tonnes)', 
+                            'us cattle numbers(*1000)', 'us_fed_avg_dressed_calves',
+                            'aus_exports of beef, veal and live cattle to US',
+                             'us_production_fedral_inspected_total poultry', 'us_cold_storage_beef', 
+                             'us_production_commercial_beef', 'us_livestock_commercial_mature sheep', 
+                             'us_livestock_commercial_steers]
+                             
+                             
+############################################################################################################################################                         
+
+
+# For 12M prediction of 2019  
+
+### Selected by XGBoost Importance
+xgb_selected_features_17 = ['us_commercial_avg_live_calves',
+                            'aus_exports of beef, veal and live cattle to US',
+                            'us_total red meat and poultry', 'us_fed_avg_dressed_steers',
+                            'aus_beef&veal_slaughterings', 'us_veganism',       
+                            'aus_total dairy cattle and calves',       
+                            'us_livestock_commercial_mature sheep', 
+                            'australia cattle numbers',       
+                            'us_production_commercial_total red meat',       
+                            'us_livestock_commercial_dairy', 'us_veganism_trend_ratio',       
+                            'aus_Meat Produced ;  CATTLE (excl. calves) ;  Total (State) Original (tonnes)',       
+                            'us_cold_storage_beef', 'aus_beef&veal_production', 'aus_max_temp',       
+                            'us_beef']
+                            
+
+### Selected by SHAP Value (above zero) - total number = 40
+selected_features_shap_all = ['aus_exports of beef, veal and live cattle to US',
+                              'aus_total dairy cattle and calves',
+                              'us_production_commercial_total red meat',
+                              'us_commercial_avg_live_calves', 'us_production_fedral_inspected_total poultry',
+                              'aus_avg_rainfall', 'aus_beef&veal_slaughterings',
+                              'aus_Meat Produced ;  CATTLE (excl. calves) ;  Total (State) Original (tonnes)',
+                              'us_veganism_trend_ratio',
+                              'us_veganism', 'us_livestock_commercial_cattle', 'us_total red meat and poultry',
+                              'us_livestock_fedral_inspected_bulls and stags', 'us_beef',
+                              'us_fed_avg_dressed_steers', 
+                              'aus_Meat Produced ;  CATTLE (excl. calves) ;  Total (State) Seasonally adjusted (tonnes)', 
+                              'aus_population_overseas_arrivals', 'us_cold_storage_beef', 
+                              'us_livestock_commercial_bulls and stags', 'aus_population_estimated resident population', 
+                              'australia cattle numbers', 'us_livestock_commercial_dairy',
+                              'us_livestock_commercial_beef', 'aus_Meat Produced ;  CALVES ;  Total (State) ;', 
+                              'us_livestock_fedral_inspected_dairy_cows', 'aus_population_net overseas migration', 
+                              'aus_min_temp', 'aus_max_temp', 'us_livestock_fedral_inspected_beef', 
+                              'us_fed_avg_dressed_heifers', 'us_cold_storage_veal', 'us_livestock_commercial_mature sheep',
+                              'us_livestock_commercial_steers', 'aus_beef&veal_production', 'aus_fed_rd',
+                              'us_livestock_commercial_lambs and yearlings', 'aus_population_natural_increase',
+                              'us_livestock_commercial_heifers', 'us_commercial_avg_live_cattle', 
+                              'us_production_fedral_inspected_total red meat']
+
+
+### Selected by SHAP Value (using Wrapper Method) - gives the best result
+selected_features_shap_10 = ['aus_beef&veal_slaughterings', 'aus_population_natural_increase', 
+                            'aus_beef&veal_exports', 'us_production_fedral_inspected_total red meat and poultry',
+                            'aus_exports of beef, veal and live cattle to US', 
+                            'us_livestock_commercial_mature sheep', 'us_livestock_commercial_beef',
+                            'us_veganism_trend_ratio', 'us_fed_avg_dressed_calves','us_veganism']
+                   
+
+                   

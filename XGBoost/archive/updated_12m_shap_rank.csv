@@ -1,0 +1,77 @@
+,features,importance
+10,aus_total dairy cattle and calves,0.021189706
+39,us_production_commercial_total red meat,0.013095878
+46,us_livestock_commercial_steers,0.011172284
+62,us_commercial_avg_live_calves,0.008238585
+30,aus_avg_rainfall,0.007766699
+12,"aus_exports of beef, veal and live cattle to US",0.0065203137
+73,us_veganism,0.006490233
+38,us_production_commercial_veal,0.005748205
+52,us_livestock_commercial_lambs and yearlings,0.0050562625
+20,aus_feed,0.0050182394
+67,us_fed_avg_dressed_heifers,0.0043021278
+75,us_veganism_trend_ratio,0.004290473
+66,us_fed_avg_dressed_steers,0.0035444282
+53,us_livestock_commercial_mature sheep,0.0032434764
+49,us_livestock_commercial_dairy,0.0032385502
+29,aus_max_temp,0.00323018
+61,us_commercial_avg_live_cattle,0.0030776232
+70,us_fed_avg_dressed_calves,0.0016176593
+71,us_cold_storage_beef,0.001281939
+15,aus_Meat Produced ;  CATTLE (excl. calves) ;  Total (State) Original (tonnes),0.0012677964
+57,us_livestock_fedral_inspected_beef,0.0
+56,us_livestock_fedral_inspected_heifers,0.0
+55,us_livestock_fedral_inspected_steers,0.0
+54,us_livestock_fedral_inspected_cattle,0.0
+51,us_livestock_commercial_calves,0.0
+5,aus_beef&veal_average weight,0.0
+59,us_livestock_fedral_inspected_bulls and stags,0.0
+50,us_livestock_commercial_bulls and stags,0.0
+48,us_livestock_commercial_beef,0.0
+47,us_livestock_commercial_heifers,0.0
+58,us_livestock_fedral_inspected_dairy_cows,0.0
+11,aus_total beef cattle and calves,0.0
+60,us_livestock_fedral_inspected_calves,0.0
+45,us_livestock_commercial_cattle,0.0
+4,aus_beef&veal_slaughterings,0.0
+63,us_fed_avg_live_cattle,0.0
+64,us_fed_avg_live_calves,0.0
+65,us_fed_avg_dressed_cattle,0.0
+3,aus_population_estimated resident population,0.0
+68,us_fed_avg_dressed_cows,0.0
+69,us_fed_avg_dressed_bulls and stags,0.0
+72,us_cold_storage_veal,0.0
+2,aus_population_net overseas migration,0.0
+74,us_beef,0.0
+6,aus_beef&veal_production,0.0
+44,us_production_fedral_inspected_total red meat and poultry,0.0
+13,"Value of Australian exports of beef and veal, and live cattle to US ",0.0
+43,us_production_fedral_inspected_total poultry,0.0
+14,us import of beef kt (cw),0.0
+16,aus_Meat Produced ;  CATTLE (excl. calves) ;  Total (State) Seasonally adjusted (tonnes),0.0
+17,aus_Meat Produced ;  CALVES ;  Total (State) ;,0.0
+18,aus_Meat Produced ;  CALVES ;  Total (State) ; Seasonally Adjusted,0.0
+19,aus_labour,0.0
+9,australia cattle numbers,0.0
+21,aus_pasture,0.0
+22,aus_tse,0.0
+23,aus_pse,0.0
+24,aus_cse,0.0
+25,aus_fed_rd,0.0
+26,aus_state_rd,0.0
+27,aus_uni_rd,0.0
+28,aus_min_temp,0.0
+8,aus_apparent consumption,0.0
+31,us cattle numbers(*1000),0.0
+32,us beef Per Capita Consumption,0.0
+33,us_total red meat,0.0
+34,us_total red meat and poultry,0.0
+35,us_population,0.0
+36,us_income per capita,0.0
+37,us_production_commercial_beef,0.0
+1,aus_population_overseas_arrivals,0.0
+7,aus_beef&veal_exports,0.0
+40,us_production_fedral_inspected_beef,0.0
+41,us_production_fedral_inspected_veal,0.0
+42,us_production_fedral_inspected_total red meat,0.0
+0,aus_population_natural_increase,0.0

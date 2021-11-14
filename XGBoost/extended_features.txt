@@ -1,0 +1,27 @@
+
+# For 6M Prediction: total number = 25
+aus_us_ca_nz_features = ['us_livestock_commercial_lambs and yearlings', 'aus_beef&veal_exports', 
+                         'us_livestock_commercial_beef', 'aus_total dairy cattle and calves',
+                         'aus_Meat Produced ;  CATTLE (excl. calves) ;  Total (State) Original (tonnes)',
+                         'us_veganism', 'aus_avg_rainfall', 'us_veganism_trend_ratio',
+                         'aus_Meat Produced ;  CATTLE (excl. calves) ;  Total (State) Seasonally adjusted (tonnes)',
+                         'us cattle numbers(*1000)', 'us_fed_avg_dressed_calves',
+                         'aus_exports of beef, veal and live cattle to US',
+                         'us_production_fedral_inspected_total poultry', 'us_cold_storage_beef',
+                         'us_production_commercial_beef', 'us_livestock_commercial_mature sheep',
+                         'us_livestock_commercial_steers',
+                         'ca_beef_export_total', 'ca_beef_veal_prod',
+                         'ca_avg_rainfall', 'ca_beef_export_us', 
+                         'nz_beef_export_total','nz_beef_veal_prod',      
+                         'nz_avg_rainfall', 'nz_beef_export_us']
+
+# For 12M Prediction: total number = 18
+aus_us_ca_nz_features = ['aus_beef&veal_slaughterings', 'aus_population_natural_increase', 
+                         'aus_beef&veal_exports', 'us_production_fedral_inspected_total red meat and poultry',
+                         'aus_exports of beef, veal and live cattle to US', 
+                         'us_livestock_commercial_mature sheep', 'us_livestock_commercial_beef',
+                         'us_veganism_trend_ratio', 'us_fed_avg_dressed_calves','us_veganism',
+                         'ca_beef_export_total', 'ca_beef_veal_prod', 'ca_beef_export_us',
+                         'ca_population_natural_increase',
+                         'nz_beef_export_total','nz_beef_veal_prod', 'nz_beef_export_us', 
+                         'nz_population_natural_increase']

@@ -1,0 +1,257 @@
+---
+title: "ARIMA Baseline model"
+author: "Kechen Zhao 957398"
+date: "17/10/2021"
+output: word_document
+---
+
+ARIMA 12months prediction modelling
+```{r}
+library(forecast)
+library(lubridate)
+library(tseries)
+library(fpp)
+library(ggplot2)
+library(caret)
+library(patchwork)
+# import data
+data <- read.csv("/Users/abigail/Dropbox/Data\ Science\ Project/Combined\ Datasets\ For\ AUS\ and\ US/08-19_combined.csv")
+```
+Construct training and test set:
+```{r}
+rownames(data) <- data$month
+data <- subset(data, select = -month)
+
+x <- subset(data, select = -import_ratio)
+y <- subset(data, select = import_ratio)
+
+market_share_all <- ts(y, start=c(2008.1),frequency=12)
+```
+```{r}
+training.x <- x[1:132,]
+training.y <- y[1:132,]
+share.train <- ts(training.y, start=c(2008.1),frequency=12)
+test.x <- x[133:144,]
+test.y <- y[133:144,]
+share.test <- ts(test.y, start=c(2019.1),frequency=12)
+```
+```{r}
+Seasonaling <- plot(share.train)+title("Market Share with Seasonality")
+```
+
+```{r}
+modArima <- auto.arima(share.train)
+summary(modArima)
+```
+
+```{r}
+Forecasted_values<-forecast(modArima, 12)
+Final_forecasted_values<-Forecasted_values$mean
+Final_forecasted_values
+```
+Calculating the MSE in the test dataset:
+```{r}
+test.y
+```
+
+```{r}
+(RMSE.ARIMA.with.Seasonality.12 <- sqrt(sum((test.y - Final_forecasted_values)^2)/12))
+(MAE.ARIMA.with.Seasonality.12 <- sum(abs(test.y - Final_forecasted_values))/12)
+(MAPE.ARIMA.with.Seasonality.12 <- 100*sum(abs((test.y - Final_forecasted_values)/Final_forecasted_values))/12)
+```
+Plotting forecast values:
+```{r}
+forecast(modArima, 12) -> fc
+ARIMA.with.Seasonality.plot.12 <- autoplot(market_share_all, series="Data") + 
+autolayer(fc, series="Forecast") + 
+autolayer(fitted(fc), series="Fitted")
+
+ARIMA.with.Seasonality.plot.12 <- ARIMA.with.Seasonality.plot.12 + labs(title = "ARIMA.with.Seasonality.12.Baseline") + labs(caption = "RMSE = 0.02462555, MAE = 0.01989308, MAPE = 9.346342")
+ARIMA.with.Seasonality.plot.12
+```
+Plot only the foretasted period:
+```{r}
+forecast(modArima,12)$mean -> fc
+ARIMA.with.Seasonality.forecast.12 <- autoplot(share.test, series="Data") + autolayer(fc, series="Forecast")
+
+ARIMA.with.Seasonality.forecast.12 <- ARIMA.with.Seasonality.forecast.12 + labs(title = "ARIMA.with.Seasonality.forecast.12.Baseline") + labs(caption = "RMSE = 0.02462555, MAE = 0.01989308, MAPE = 9.346342")
+ARIMA.with.Seasonality.forecast.12
+```
+```{r}
+ARIMA.with.Seasonality.plot.12 + ARIMA.with.Seasonality.forecast.12
+```
+
+Fitting ARIMA without seasonality
+Deseasonaling the dataset and plotting：
+```{r}
+decompose_data = decompose(share.train, "additive")
+adjust_market_share = share.train - decompose_data$seasonal
+Deseasonaling <- plot(adjust_market_share) + title("Market Share without Seasonality")
+```
+```{r}
+par(mfrow=c(1,2))
+plot(share.train)+title("Market Share with Seasonality")
+plot(adjust_market_share) + title("Market Share without Seasonality")
+```
+
+Fit ARIMA to deseasoned data:
+```{r}
+modArima_desea <- auto.arima(adjust_market_share)
+modArima_desea
+```
+
+```{r}
+Forecasted_values_des<-forecast(modArima_desea,12)
+Final_forecasted_values_des<-Forecasted_values_des$mean
+(Final_forecasted_values_des)
+
+(RMSE.ARIMA.without.Seasonality.12 <- sqrt(sum((test.y - Final_forecasted_values_des)^2)/12))
+(MAE.ARIMA.without.Seasonality.12 <- sum(abs(test.y - Final_forecasted_values_des))/12)
+(MAPE.ARIMA.without.Seasonality.12 <- 100*sum(abs((test.y - Final_forecasted_values_des)/Final_forecasted_values_des))/12)
+```
+
+Plotting forecast values after seasonality removal:
+```{r}
+forecast(modArima_desea,12) -> fc1
+ARIMA.without.Seasonality.plot.12 <- autoplot(market_share_all, series="Data") + 
+autolayer(fc1, series="Forecast") + 
+autolayer(fitted(fc1), series="Fitted")
+
+ARIMA.without.Seasonality.plot.12 <- ARIMA.without.Seasonality.plot.12 + labs(title = "ARIMA.without.Seasonality.12.Baseline") + labs(caption = "RMSE = 0.02745205, MAE = 0.01913106, MAPE = 8.613308")
+ARIMA.without.Seasonality.plot.12
+```
+
+Plot only the foretasted period:
+```{r}
+forecast(modArima_desea,12)$mean -> fc
+ARIMA.without.Seasonality.forecast.12 <- autoplot(share.test, series="Data") + autolayer(fc, series="Forecast")
+
+ARIMA.without.Seasonality.forecast.12 <- ARIMA.without.Seasonality.forecast.12 + labs(title = "ARIMA.without.Seasonality.forecast.12.Baseline") + labs(caption = "RMSE = 0.02745205, MAE = 0.01913106, MAPE = 8.613308")
+ARIMA.without.Seasonality.forecast.12
+```
+```{r}
+ARIMA.without.Seasonality.plot.12 + ARIMA.without.Seasonality.forecast.12
+```
+
+
+
+
+ARIMA 6months prediction modelling
+```{r}
+data <- read.csv("/Users/abigail/Dropbox/Data\ Science\ Project/Combined\ Datasets\ For\ AUS\ and\ US/08-19_combined.csv")
+```
+Construct training and test set:
+```{r}
+rownames(data) <- data$month
+data <- subset(data, select = -month)
+
+x <- subset(data, select = -import_ratio)
+y <- subset(data, select = import_ratio)
+
+market_share_all <- ts(y, start=c(2008.1),frequency=12)
+```
+```{r}
+training.x <- x[1:138,]
+training.y <- y[1:138,]
+share.train <- ts(training.y, start=c(2008.1),frequency=12)
+test.x <- x[139:144,]
+test.y <- y[139:144,]
+share.test <- ts(test.y, start=c(2019.6),frequency=12)
+```
+```{r}
+modArima <- auto.arima(share.train)
+summary(modArima)
+```
+```{r}
+Forecasted_values<-forecast(modArima,6)
+Final_forecasted_values<-Forecasted_values$mean
+Final_forecasted_values
+```
+Calculating the MSE in the test dataset:
+```{r}
+(RMSE.ARIMA.with.Seasonality.6 <- sqrt(sum((test.y - Final_forecasted_values)^2)/6))
+(MAE.ARIMA.with.Seasonality.6 <- sum(abs(test.y - Final_forecasted_values))/6)
+(MAPE.ARIMA.with.Seasonality.6 <- 100*sum(abs((test.y - Final_forecasted_values)/Final_forecasted_values))/6)
+```
+Plotting forecast values:
+```{r}
+forecast(modArima,6) -> fc
+ARIMA.with.Seasonality.plot.6 <- autoplot(market_share_all, series="Data") + 
+autolayer(fc, series="Forecast") + 
+autolayer(fitted(fc), series="Fitted")
+
+ARIMA.with.Seasonality.plot.6 <- ARIMA.with.Seasonality.plot.6 + labs(title = "ARIMA.with.Seasonality.6.Baseline") + labs(caption = "RMSE = 0.02037986, MAE = 0.01646762, MAPE = 7.04457")
+ARIMA.with.Seasonality.plot.6
+```
+Plot only the foretasted period:
+```{r}
+forecast(modArima,6)$mean -> fc
+ARIMA.with.Seasonality.forecast.6 <- autoplot(share.test, series="Data") + autolayer(fc, series="Forecast")
+
+ARIMA.with.Seasonality.forecast.6 <- ARIMA.with.Seasonality.forecast.6 + labs(title = "ARIMA.with.Seasonality.forecast.6.Baseline") + labs(caption = "RMSE = 0.02037986, MAE = 0.01646762, MAPE = 7.04457")
+ARIMA.with.Seasonality.forecast.6
+```
+```{r}
+ARIMA.with.Seasonality.plot.6 + ARIMA.with.Seasonality.forecast.6
+```
+Fitting ARIMA without seasonality
+Deseasonaling the dataset and plotting：
+```{r}
+decompose_data = decompose(share.train, "additive")
+adjust_market_share = share.train - decompose_data$seasonal
+plot(adjust_market_share)
+```
+Fit ARIMA to deseasoned data:
+```{r}
+modArima_desea <- auto.arima(adjust_market_share)
+modArima_desea
+```
+```{r}
+Forecasted_values_des<-forecast(modArima_desea,6)
+Final_forecasted_values_des<-Forecasted_values_des$mean
+(Final_forecasted_values_des)
+
+(RMSE.ARIMA.without.Seasonality.6 <- sqrt(sum((test.y - Final_forecasted_values_des)^2)/6))
+(MAE.ARIMA.without.Seasonality.6 <- sum(abs(test.y - Final_forecasted_values_des))/6)
+(MAPE.ARIMA.without.Seasonality.6 <- 100*sum(abs((test.y - Final_forecasted_values_des)/Final_forecasted_values_des))/6)
+```
+Plotting forecast values after seasonality removal:
+```{r}
+forecast(modArima_desea,5) -> fc1
+ARIMA.without.Seasonality.plot.6 <- autoplot(market_share_all, series="Data") + 
+autolayer(fc1, series="Forecast") + 
+autolayer(fitted(fc1), series="Fitted")
+
+ARIMA.without.Seasonality.plot.6 <- ARIMA.without.Seasonality.plot.6 + labs(title = "ARIMA.without.Seasonality.6.Baseline") + labs(caption = "RMSE = 0.01558521, MAE = 0.01393499, MAPE = 5.965604")
+ARIMA.without.Seasonality.plot.6
+```
+Plot only the foretasted period:
+```{r}
+forecast(modArima_desea,6)$mean -> fc
+ARIMA.without.Seasonality.forecast.6 <- autoplot(share.test, series="Data") + autolayer(fc, series="Forecast")
+
+ARIMA.without.Seasonality.forecast.6 <- ARIMA.without.Seasonality.forecast.6 + labs(title = "ARIMA.without.Seasonality.forecast.6.Baseline") + labs(caption = "RMSE = 0.01558521, MAE = 0.01393499, MAPE = 5.965604")
+ARIMA.without.Seasonality.forecast.6
+```
+```{r}
+ARIMA.without.Seasonality.plot.6 + ARIMA.without.Seasonality.forecast.6
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
